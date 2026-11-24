@@ -71,7 +71,7 @@ export function DealershipOwnerFinancials() {
     selectedPartner?.displayName?.trim() ||
     'this dealership';
   const [period, setPeriod] = useState<OwnerPeriod>('this-month');
-  const [range, setRange] = useState<DateRange>({});
+  const [range, setRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [moneyFilter, setMoneyFilter] = useState<MoneyFilter>('all');
 
   const snapshot = useMemo(() => {
