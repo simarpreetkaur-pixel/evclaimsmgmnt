@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import { Flag } from 'lucide-react';
 
 import Breadcrumbs from '@/components/molecules/Breadcrumbs';
 import { PAGE_LAYOUT_CLASS, PAGE_TITLE_CLASS } from '@/components/molecules/PageHeading';
@@ -35,12 +36,7 @@ import {
   UPLOAD_ACTIONS,
 } from '@/features/overview/overviewContent';
 import { useRaisedClaimsStore } from '@/lib/prototype/raisedClaims';
-import {
-  getPrototypeEmail,
-  getPrototypeFirstName,
-  getPrototypePersona,
-  type PrototypePersona,
-} from '@/lib/prototype/session';
+import { getPrototypeEmail, getPrototypeFirstName } from '@/lib/prototype/session';
 import { useUserProfileStore } from '@/lib/store/userProfile.store';
 import type {
   ClaimDocumentRow,
@@ -879,7 +875,6 @@ export default function DealershipClaimDetail() {
   const [uploadRows, setUploadRows] = useState<UploadDocumentsRow[]>([]);
   const [submittedDocs, setSubmittedDocs] = useState<DocumentSeed[]>([]);
   const [claimsReady, setClaimsReady] = useState(false);
-  const [persona, setPersona] = useState<PrototypePersona | null>(null);
   const [messagesReady, setMessagesReady] = useState(false);
   const [threads, setThreads] = useState<Record<string, ClaimMessage[]>>({});
   const [composeOpen, setComposeOpen] = useState(false);
@@ -891,10 +886,6 @@ export default function DealershipClaimDetail() {
     hydrateRaisedClaims();
     setClaimsReady(true);
   }, [hydrateRaisedClaims]);
-
-  useEffect(() => {
-    setPersona(getPrototypePersona(userProfile?.email || getPrototypeEmail()));
-  }, [userProfile?.email]);
 
   useEffect(() => {
     const stored = readClaimMessages();
@@ -959,7 +950,6 @@ export default function DealershipClaimDetail() {
     ...submittedDocs.map((document) => toDocumentRow(document, 'Dealership')),
   ];
   const showRequest = Boolean(story.request) && !requestSent;
-  const canMessageAcko = persona === 'owner' || persona === 'super';
   const thread = threads[claim.id] ?? [];
   const waitingOnAcko = thread[0]?.from === 'dealership';
   const handlerNote = handlerNoteItem(story);
@@ -983,7 +973,7 @@ export default function DealershipClaimDetail() {
 
   const sendNote = () => {
     const body = note.trim();
-    if (!body || !canMessageAcko) return;
+    if (!body) return;
     const claimId = claim.id;
     const sent: ClaimMessage = {
       id: `note-${Date.now()}`,
@@ -1018,15 +1008,14 @@ export default function DealershipClaimDetail() {
             {claim.status}
           </Badge>
         </div>
-        {canMessageAcko ? (
-          <Button
-            type="button"
-            onClick={openMessage}
-            className="bg-create-claim-button text-create-claim-button-text hover:bg-create-claim-button-hover h-8 rounded-full px-4 text-sm font-medium"
-          >
-            Message ACKO
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          onClick={openMessage}
+          className="bg-create-claim-button text-create-claim-button-text hover:bg-create-claim-button-hover h-8 gap-1.5 rounded-full px-4 text-sm font-medium"
+        >
+          <Flag className="size-3.5 opacity-80" strokeWidth={1.75} />
+          Raise to ACKO
+        </Button>
       </div>
 
       <SegmentedTabs
@@ -1144,7 +1133,7 @@ export default function DealershipClaimDetail() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Message ACKO</DialogTitle>
+            <DialogTitle>Raise to ACKO</DialogTitle>
             <DialogDescription>
               Add a note for {claim.id}. It shows in the communication history, and ACKO’s reply shows there too.
             </DialogDescription>

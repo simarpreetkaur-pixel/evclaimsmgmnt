@@ -17,7 +17,6 @@ import { cn } from '@/lib/utils';
 import type {
   ClaimCommunicationStatus,
   ClaimDocumentActionType,
-  ClaimDocumentStatus,
   ClaimDocumentRow,
   ClaimCommunicationRow,
 } from '@/lib/types/claims-management/claimDetails';
@@ -40,14 +39,6 @@ type ClaimDetailsTableProps =
       className?: string;
       onDocumentAction?: (action: ClaimDocumentActionType, row: ClaimDocumentRow) => void;
     };
-
-const documentStatusStyles: Record<ClaimDocumentStatus, string> = {
-  Approved:
-    'bg-endorse-policy-badge-success-bg text-endorse-policy-badge-success-text border-endorse-policy-badge-success-border',
-  'Under evaluation':
-    'bg-endorse-policy-badge-warning-bg text-endorse-policy-badge-warning-text border-endorse-policy-badge-warning-border',
-  Rejected: 'bg-recent-searches-status-inactive-bg text-recent-searches-status-text',
-};
 
 const communicationStatusStyles: Record<ClaimCommunicationStatus, string> = {
   Success: 'bg-recent-searches-status-active-bg text-recent-searches-status-text',
@@ -77,16 +68,6 @@ const renderDocumentRow = (
       </TableCell>
       <TableCell className="text-sm">
         <TruncatedTooltipText text={row.note} />
-      </TableCell>
-      <TableCell className="w-width-150">
-        <Badge
-          className={cn(
-            'border-transparent px-2 py-0.5 text-xs font-medium',
-            documentStatusStyles[row.status],
-          )}
-        >
-          {row.status}
-        </Badge>
       </TableCell>
       <TableCell>
         <div className="flex justify-end gap-1">

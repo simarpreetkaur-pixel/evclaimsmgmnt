@@ -44,7 +44,6 @@ export const DOCUMENTS_TABLE_LABELS = {
   uploadedBy: 'Uploaded by',
   date: 'Date',
   notes: 'Notes',
-  status: 'Status',
   action: 'Action',
 };
 
@@ -62,7 +61,6 @@ export const DOCUMENTS_TABLE_HEADERS = [
   { id: 'uploadedBy', label: DOCUMENTS_TABLE_LABELS.uploadedBy },
   { id: 'date', label: DOCUMENTS_TABLE_LABELS.date },
   { id: 'notes', label: DOCUMENTS_TABLE_LABELS.notes },
-  { id: 'status', label: DOCUMENTS_TABLE_LABELS.status },
   { id: 'action', label: DOCUMENTS_TABLE_LABELS.action },
 ];
 
