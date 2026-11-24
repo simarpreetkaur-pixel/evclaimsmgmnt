@@ -13,6 +13,7 @@ import { CreateClaimPrototypeFlow } from '@/components/organisms/create-claim/Cr
 import { CreateClaimStepper } from '@/components/organisms/create-claim/CreateClaimStepper';
 import { FallbackState } from '@/components/templates/FallbackState';
 import { ACCESS_DENIED_MESSAGE } from '@/lib/constants/auth.constants';
+import { CreateClaimFlowStepId } from '@/lib/constants/createClaim.constants';
 import { BankDetailsFailureDialog } from '@/components/organisms/create-claim/BankDetailsFailureDialog';
 import { CreateClaimHydrationLoading } from '@/components/organisms/create-claim/CreateClaimHydrationLoading';
 import { CreateClaimStepContent } from '@/components/organisms/create-claim/CreateClaimStepContent';
@@ -26,6 +27,12 @@ import { usePolicyShareDialog } from '@/lib/hooks/usePolicyShareDialog';
 import { useCoveragePlanMappingQuery } from '@/lib/query/overview.queries';
 import { isPlanEligibleForInAppClaimCreation } from '@/lib/utils/coveragePlanMapping.utils';
 import { isCancelledPolicyStatus } from '@/lib/utils/policyStatus.utils';
+
+const CREATE_CLAIM_FLOW_STEP_IDS = new Set<string>(Object.values(CreateClaimFlowStepId));
+
+function isCreateClaimFlowStepId(stepId: string): stepId is CreateClaimFlowStepId {
+  return CREATE_CLAIM_FLOW_STEP_IDS.has(stepId);
+}
 
 export default function CreateClaimFlow() {
   const flow = useCreateClaimFlow();
@@ -205,7 +212,11 @@ export default function CreateClaimFlow() {
       <Breadcrumbs />
       <CreateClaimStepper
         currentStepIndex={flow.currentFlowStepIdx}
-        onStepClick={flow.handleNavigateToStep}
+        onStepClick={(stepId) => {
+          if (isCreateClaimFlowStepId(stepId)) {
+            flow.handleNavigateToStep(stepId);
+          }
+        }}
       />
       <CreateClaimStepContent
         flow={flow}

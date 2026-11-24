@@ -1,0 +1,8 @@
+[build]
+  # Run pnpm through corepack (bundled with Node) so the build works even when
+  # pnpm is not preinstalled on PATH. Version comes from "packageManager".
+  command = "corepack pnpm install --frozen-lockfile && corepack pnpm --filter next-app... run build"
+  publish = ".next"
+
+[build.environment]
+  COREPACK_ENABLE_DOWNLOAD_PROMPT = "0"

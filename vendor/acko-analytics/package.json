@@ -1,0 +1,9 @@
+{
+  "name": "@acko-tech/building-blocks.ui.acko-analytics",
+  "version": "2.0.0-local",
+  "private": true,
+  "description": "Local drop-in replacement for the internal Acko analytics package (the internal registry is not reachable from public build environments). Loads Segment analytics.js and exposes the same API surface used by this app.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": false
+}
