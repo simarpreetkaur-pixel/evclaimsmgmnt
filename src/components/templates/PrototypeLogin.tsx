@@ -15,10 +15,11 @@ type LoginStep = 'email' | 'otp';
 
 const OTP_LENGTH = 4;
 const RESEND_SECONDS = 30;
+const DEFAULT_PROTOTYPE_EMAIL = 'mesimarpreet@gmail.com';
 
 export function PrototypeLogin({ onSignIn }: PrototypeLoginProps) {
   const [step, setStep] = useState<LoginStep>('email');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(DEFAULT_PROTOTYPE_EMAIL);
   const [otpDigits, setOtpDigits] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const [error, setError] = useState('');
