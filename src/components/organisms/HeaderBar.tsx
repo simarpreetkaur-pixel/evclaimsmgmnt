@@ -19,6 +19,7 @@ import {
 } from '@/lib/constants/partnerMeta.constants';
 import { PROTOTYPE_MODE } from '@/lib/prototype/session';
 import { DmsSimulationControl } from './DmsSimulationControl';
+import { withBasePath } from '@/lib/utils/basePath';
 
 export function HeaderBar() {
   const {
@@ -53,7 +54,7 @@ export function HeaderBar() {
     }
 
     segments[0] = dealerships[0].id;
-    window.location.assign(`/${segments.join('/')}`);
+    window.location.assign(withBasePath(`/${segments.join('/')}`));
   }, [partnersData, pathname]);
 
   const pageContext = () => getSegmentPageContextFromPathname(pathname);
@@ -82,10 +83,12 @@ export function HeaderBar() {
       }
     }
     window.location.assign(
-      appendSourceQueryParam(
-        targetPath,
-        window.location.search,
-        getDataSourceFromSearch(window.location.search),
+      withBasePath(
+        appendSourceQueryParam(
+          targetPath,
+          window.location.search,
+          getDataSourceFromSearch(window.location.search),
+        ),
       ),
     );
   };

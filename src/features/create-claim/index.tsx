@@ -26,6 +26,7 @@ import { usePolicyShareDialog } from '@/lib/hooks/usePolicyShareDialog';
 import { useCoveragePlanMappingQuery } from '@/lib/query/overview.queries';
 import { isPlanEligibleForInAppClaimCreation } from '@/lib/utils/coveragePlanMapping.utils';
 import { isCancelledPolicyStatus } from '@/lib/utils/policyStatus.utils';
+import type { CreateClaimFlowStepId } from '@/lib/constants/createClaim.constants';
 
 export default function CreateClaimFlow() {
   const flow = useCreateClaimFlow();
@@ -205,7 +206,8 @@ export default function CreateClaimFlow() {
       <Breadcrumbs />
       <CreateClaimStepper
         currentStepIndex={flow.currentFlowStepIdx}
-        onStepClick={flow.handleNavigateToStep}
+        // The default steps' ids are CreateClaimFlowStepId values.
+        onStepClick={(stepId) => flow.handleNavigateToStep(stepId as CreateClaimFlowStepId)}
       />
       <CreateClaimStepContent
         flow={flow}

@@ -8,6 +8,7 @@ import { PROTOTYPE_MODE } from '@/lib/prototype/session';
 import { useEffect } from 'react';
 import { FINANCIAL_SIMULATOR_ENABLED } from '@/features/financial-workspace/config';
 import { FinancialSimulatorEntry } from '@/features/financial-workspace/entry';
+import { withBasePath } from '@/lib/utils/basePath';
 
 export default function LogoutPage() {
   return FINANCIAL_SIMULATOR_ENABLED ? <FinancialSimulatorEntry /> : <LiveLogoutPage />;
@@ -23,7 +24,7 @@ function LiveLogoutPage() {
 
     const timeout = setTimeout(() => {
       hideLoader();
-      window.location.href = PROTOTYPE_MODE ? '/' : getLoginUrl();
+      window.location.href = PROTOTYPE_MODE ? withBasePath('/') : getLoginUrl();
     }, 2000);
 
     return () => {

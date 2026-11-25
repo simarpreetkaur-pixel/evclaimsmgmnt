@@ -6,6 +6,7 @@ import { AppImage } from '@/components/atoms/AppImage';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { withBasePath } from '@/lib/utils/basePath';
 
 type PrototypeLoginProps = {
   onSignIn: (email: string) => void;
@@ -209,7 +210,7 @@ export function PrototypeLogin({ onSignIn }: PrototypeLoginProps) {
         className="hidden min-h-screen items-center justify-center bg-[linear-gradient(180deg,#efe9fb_0%,rgba(239,233,251,0)_100%)] lg:flex"
         aria-hidden
       >
-        <img src="/images/login-bg.svg" alt="" className="h-auto w-full max-w-[400px]" />
+        <img src={withBasePath('/images/login-bg.svg')} alt="" className="h-auto w-full max-w-[400px]" />
       </aside>
     </main>
   );

@@ -1,0 +1,8 @@
+{
+  "name": "@acko-tech/building-blocks.ui.acko-analytics",
+  "version": "2.0.0-pages-stub",
+  "private": true,
+  "description": "No-op stand-in for the private ACKO analytics package, used only by the GitHub Pages prototype build (the real one lives on an internal registry).",
+  "main": "index.js",
+  "types": "index.d.ts"
+}

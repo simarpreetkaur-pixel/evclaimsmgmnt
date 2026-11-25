@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@acko-tech/building-blocks.ui.acko-analytics':
-        specifier: 2.0.0
-        version: 2.0.0(react@19.2.3)
+        specifier: file:./scripts/github-pages/acko-analytics-stub
+        version: file:scripts/github-pages/acko-analytics-stub
       '@base-ui/react':
         specifier: ^1.1.0
         version: 1.1.0(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -177,10 +177,8 @@ importers:
 
 packages:
 
-  '@acko-tech/building-blocks.ui.acko-analytics@2.0.0':
-    resolution: {integrity: sha512-hRkFy8HacjheZ8k+PzJBBlK9lopQpNyphmsBD1NS53KBO/pI2zWbZkCm0lRX4emWKz2Je+rR5qeLEg59MDKVYg==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  '@acko-tech/building-blocks.ui.acko-analytics@file:scripts/github-pages/acko-analytics-stub':
+    resolution: {directory: scripts/github-pages/acko-analytics-stub, type: directory}
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -4720,10 +4718,7 @@ packages:
 
 snapshots:
 
-  '@acko-tech/building-blocks.ui.acko-analytics@2.0.0(react@19.2.3)':
-    dependencies:
-      js-cookie: 3.0.5
-      react: 19.2.3
+  '@acko-tech/building-blocks.ui.acko-analytics@file:scripts/github-pages/acko-analytics-stub': {}
 
   '@alloc/quick-lru@5.2.0': {}
 

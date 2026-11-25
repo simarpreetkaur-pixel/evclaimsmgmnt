@@ -1,5 +1,7 @@
 import Image, { type ImageProps } from 'next/image';
 
+import { withBasePath } from '@/lib/utils/basePath';
+
 type AppImageProps = ImageProps;
 
 const isNativeImgSrc = (src: ImageProps['src']): src is string => {
@@ -15,13 +17,15 @@ const isNativeImgSrc = (src: ImageProps['src']): src is string => {
 };
 
 export function AppImage({
-  src,
+  src: rawSrc,
   alt = 'image',
   unoptimized,
   className,
   style,
   ...rest
 }: AppImageProps) {
+  // next/image doesn't prefix string paths with basePath, so public/ assets need it here.
+  const src = typeof rawSrc === 'string' ? withBasePath(rawSrc) : rawSrc;
   const isRemote = typeof src === 'string' && /^https?:\/\//i.test(src);
 
   if (isNativeImgSrc(src)) {

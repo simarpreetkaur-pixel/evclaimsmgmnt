@@ -2,15 +2,9 @@ import { readLegacyContext } from '@/features/financial-workspace/legacy-context
 import { AxiosHeaders, type AxiosAdapter } from 'axios';
 import { PERMISSIONS } from '@/lib/constants/auth.constants';
 import { getPrototypeEmail, getPrototypeFirstName } from '@/lib/prototype/session';
+import { PROTOTYPE_DEALERSHIPS } from '@/lib/prototype/dealerships';
 
-const dealerships = [
-  { id: 'ather_indiranagar', display_name: 'Ather Indiranagar' },
-  { id: 'ather_koramangala', display_name: 'Ather Koramangala' },
-  { id: 'ather_andheri_west', display_name: 'Ather Andheri West' },
-  { id: 'hero_vida_connaught_place', display_name: 'Hero Vida Connaught Place' },
-  { id: 'hero_vida_whitefield', display_name: 'Hero Vida Whitefield' },
-  { id: 'hero_vida_banjara_hills', display_name: 'Hero Vida Banjara Hills' },
-];
+const dealerships = PROTOTYPE_DEALERSHIPS;
 const partnerId = dealerships[0].id;
 const lob = 'health';
 const productIds = ['group_health'];
