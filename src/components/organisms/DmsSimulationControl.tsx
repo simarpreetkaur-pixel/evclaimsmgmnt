@@ -67,7 +67,7 @@ export function DmsSimulationControl() {
         <SheetContent>
           <SheetHeader>
             <SheetTitle>Simulate</SheetTitle>
-            <SheetDescription>Switch the profile you are viewing this dealership as.</SheetDescription>
+            <SheetDescription>Switch the profile you are viewing as.</SheetDescription>
           </SheetHeader>
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">

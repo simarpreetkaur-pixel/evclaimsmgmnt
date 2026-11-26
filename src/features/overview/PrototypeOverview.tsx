@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 
 import { DealershipOpsOverview } from '@/features/overview/DealershipOpsOverview';
 import { DealershipOwnerOverview } from '@/features/overview/DealershipOwnerOverview';
-import { DealershipSuperOverview } from '@/features/overview/DealershipSuperOverview';
+import { KamPortfolioOverview } from '@/features/overview/KamPortfolioOverview';
+import { SuperOverview } from '@/features/overview/SuperOverview';
 import { getPrototypeEmail, getPrototypePersona } from '@/lib/prototype/session';
 import { useUserProfileStore } from '@/lib/store/userProfile.store';
 
 export function PrototypeOverview() {
   const { userProfile } = useUserProfileStore();
-  const [persona, setPersona] = useState<'super' | 'owner' | 'ops' | null>(null);
+  const [persona, setPersona] = useState<'super' | 'owner' | 'ops' | 'kam' | null>(null);
 
   useEffect(() => {
     const email = userProfile?.email || getPrototypeEmail();
@@ -22,7 +23,11 @@ export function PrototypeOverview() {
   }
 
   if (persona === 'super') {
-    return <DealershipSuperOverview />;
+    return <SuperOverview />;
+  }
+
+  if (persona === 'kam') {
+    return <KamPortfolioOverview />;
   }
 
   return persona === 'owner' ? <DealershipOwnerOverview /> : <DealershipOpsOverview />;

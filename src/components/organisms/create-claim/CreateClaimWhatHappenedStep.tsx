@@ -38,6 +38,7 @@ const FAILURE_MATCHES = [
 
 const fieldClassName =
   'border-policy-search-border h-10 w-full bg-white px-3 text-sm shadow-policy-search';
+const MIN_OBSERVATION_LENGTH = 40;
 
 export type WhatHappenedDraft = {
   observation: string;
@@ -77,9 +78,10 @@ export function CreateClaimWhatHappenedStep({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [closestMatch, setClosestMatch] = useState('');
 
+  const observationLength = customerSaid.trim().length;
   const complete = useMemo(
-    () => customerSaid.trim().length > 0 && failedOn != null && closestMatch.length > 0,
-    [closestMatch, customerSaid, failedOn],
+    () => observationLength >= MIN_OBSERVATION_LENGTH && failedOn != null && closestMatch.length > 0,
+    [closestMatch, failedOn, observationLength],
   );
 
   return (
@@ -114,6 +116,9 @@ export function CreateClaimWhatHappenedStep({
             placeholder="In their own words — Hindi or Hinglish is fine"
             className="border-policy-search-border min-h-24 w-full bg-white px-3 py-2 text-sm shadow-policy-search"
           />
+          <p className="text-right text-xs text-pagination-text-muted">
+            {observationLength}/{MIN_OBSERVATION_LENGTH} characters
+          </p>
         </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -137,6 +142,7 @@ export function CreateClaimWhatHappenedStep({
                 <Calendar
                   mode="single"
                   selected={failedOn}
+                  disabled={{ after: new Date() }}
                   onSelect={(date) => {
                     setFailedOn(date);
                     setCalendarOpen(false);

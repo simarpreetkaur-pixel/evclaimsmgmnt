@@ -1,16 +1,10 @@
-import { redirect } from 'next/navigation';
-
 import ClaimsManagement from '@/features/claims-management';
+import { PrototypeClaimsManagement } from '@/features/claims/PrototypeClaimsManagement';
 import { PROTOTYPE_MODE } from '@/lib/prototype/session';
 
-type ClaimsManagementPageProps = {
-  params: Promise<{ partner: string }>;
-};
-
-export default async function ClaimsManagementPage({ params }: ClaimsManagementPageProps) {
+export default async function ClaimsManagementPage() {
   if (PROTOTYPE_MODE) {
-    const { partner } = await params;
-    redirect(`/${partner}/dashboard/create-claim`);
+    return <PrototypeClaimsManagement />;
   }
 
   return <ClaimsManagement />;

@@ -17,7 +17,11 @@ import {
   getPartnerMeta,
   PARTNER_META,
 } from '@/lib/constants/partnerMeta.constants';
-import { PROTOTYPE_MODE } from '@/lib/prototype/session';
+import { BrandCheckboxSelect } from '@/components/molecules/BrandCheckboxSelect';
+import { PortfolioScopeSelect } from '@/components/molecules/PortfolioScopeSelect';
+import { usePortfolioSelectionStore } from '@/lib/prototype/customers';
+import { getPrototypeEmail, getPrototypePersona, PROTOTYPE_MODE, type PrototypePersona } from '@/lib/prototype/session';
+import { useUserProfileStore } from '@/lib/store/userProfile.store';
 import { DmsSimulationControl } from './DmsSimulationControl';
 import { withBasePath } from '@/lib/utils/basePath';
 
@@ -103,7 +107,18 @@ export function HeaderBar() {
     partnerMeta.name;
   const activePartnerIconSrc = partnerMeta.iconSrc;
   const isAtherDealership = partnerId.startsWith('ather_');
+  const userProfile = useUserProfileStore((state) => state.userProfile);
+  const superView = usePortfolioSelectionStore((state) => state.superView);
+  const [persona, setPersona] = useState<PrototypePersona | null>(null);
   const [logoSrc, setLogoSrc] = useState(activePartnerIconSrc);
+  const showBrandSelect = PROTOTYPE_MODE && isAtherDealership && persona !== null && persona !== 'ops';
+
+  useEffect(() => {
+    if (!PROTOTYPE_MODE) {
+      return;
+    }
+    setPersona(getPrototypePersona(userProfile?.email || getPrototypeEmail()));
+  }, [userProfile?.email]);
 
   useEffect(() => {
     setLogoSrc(activePartnerIconSrc);
@@ -111,57 +126,59 @@ export function HeaderBar() {
 
   return (
     <header className="border-border flex items-center justify-between border-b px-6 py-2">
-      <div className="flex items-center gap-2">
-        {isAtherDealership ? (
-          <AppImage
-            src="/images/partners/ather-logo.png"
-            alt="Ather"
-            width={626}
-            height={234}
-            className="h-8 w-auto"
-            style={{ width: 'auto', height: 32 }}
-          />
-        ) : (
-          <>
-            {logoSrc ? (
-              <div className="text-foreground flex size-8 items-center justify-center shadow-xs overflow-hidden">
-                <AppImage
-                  src={logoSrc}
-                  alt={activePartnerName}
-                  width={32}
-                  height={32}
-                  className="size-8 object-contain"
-                  onError={() => {
-                    if (fallbackIconSrc && logoSrc !== fallbackIconSrc) {
-                      setLogoSrc(fallbackIconSrc);
-                    }
-                  }}
-                />
-              </div>
-            ) : null}
-            <span className="text-foreground text-sm font-semibold uppercase tracking-[0.04em]">
-              {activePartnerName}
-            </span>
-          </>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3">
-        <LabeledSelect
-          label="Dealership"
-          value={partnerId}
-          onValueChange={handlePartnerChange}
-          options={
-            PROTOTYPE_MODE
-              ? partnerOptions.filter((option) => option.value === partnerId)
-              : partnerOptions
-          }
-          placeholder="Select dealership"
-          disabled={PROTOTYPE_MODE || partnerOptions.length === 0}
-          searchable={!PROTOTYPE_MODE}
-          searchPlaceholder="Search dealership"
-          className={PROTOTYPE_MODE ? 'cursor-default disabled:opacity-100' : undefined}
+      {isAtherDealership && !showBrandSelect ? (
+        <AppImage
+          src="/images/partners/ather-logo.png"
+          alt="Ather"
+          width={626}
+          height={234}
+          className="h-8 w-auto"
+          style={{ width: 'auto', height: 32 }}
         />
+      ) : !isAtherDealership ? (
+        <div className="flex items-center gap-2">
+          {logoSrc ? (
+            <div className="text-foreground flex size-8 items-center justify-center overflow-hidden shadow-xs">
+              <AppImage
+                src={logoSrc}
+                alt={activePartnerName}
+                width={32}
+                height={32}
+                className="size-8 object-contain"
+                onError={() => {
+                  if (fallbackIconSrc && logoSrc !== fallbackIconSrc) {
+                    setLogoSrc(fallbackIconSrc);
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+          <span className="text-foreground text-sm font-semibold tracking-[0.04em] uppercase">
+            {activePartnerName}
+          </span>
+        </div>
+      ) : null}
+
+      <div className="ml-auto flex items-center gap-3">
+        {showBrandSelect ? <BrandCheckboxSelect /> : null}
+        {persona === 'kam' ? null : (
+          <LabeledSelect
+            label="Dealership"
+            value={partnerId}
+            onValueChange={handlePartnerChange}
+            options={
+              PROTOTYPE_MODE
+                ? partnerOptions.filter((option) => option.value === partnerId)
+                : partnerOptions
+            }
+            placeholder="Select dealership"
+            disabled={PROTOTYPE_MODE || partnerOptions.length === 0}
+            searchable={!PROTOTYPE_MODE}
+            searchPlaceholder="Search dealership"
+            className={PROTOTYPE_MODE ? 'cursor-default disabled:opacity-100' : undefined}
+          />
+        )}
+        {persona === 'kam' || (persona === 'super' && superView === 'portfolio') ? <PortfolioScopeSelect /> : null}
         {PROTOTYPE_MODE ? <DmsSimulationControl /> : null}
       </div>
     </header>

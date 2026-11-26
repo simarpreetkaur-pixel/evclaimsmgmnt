@@ -16,19 +16,18 @@ import {
 import { useDmsIntegrated } from '@/lib/prototype/dmsSimulation';
 import { raisedClaimFromVehicle, useRaisedClaimsStore } from '@/lib/prototype/raisedClaims';
 import {
-  SERVICE_HISTORY_COLUMNS,
+  readingDocumentPreview,
   type ReadingsDraft,
 } from '@/components/organisms/create-claim/CreateClaimReadingsDocumentsStep';
 import type { WhatHappenedDraft } from '@/components/organisms/create-claim/CreateClaimWhatHappenedStep';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const CLAIM_REFERENCE = 'CLM-ATH-1233';
@@ -36,7 +35,7 @@ const CLAIM_REFERENCE = 'CLM-ATH-1233';
 const NEXT_STEPS = [
   {
     title: 'Submitted',
-    detail: 'The readings, service history, and documents from this visit are with Acko.',
+    detail: 'The readings and documents from this visit are with Acko.',
     state: 'done',
   },
   {
@@ -185,6 +184,8 @@ export function CreateClaimReviewSubmitStep({
   const addClaim = useRaisedClaimsStore((state) => state.addClaim);
   const vehicleDetails = claimVehicleDetails(dms);
   const [submitted, setSubmitted] = useState(false);
+  const [previewFile, setPreviewFile] = useState<string | null>(null);
+  const preview = previewFile ? readingDocumentPreview(previewFile) : null;
 
   if (submitted) {
     return (
@@ -229,69 +230,19 @@ export function CreateClaimReviewSubmitStep({
           />
         </ReviewSection>
 
-        <ReviewSection title="Service history">
-          {readings.serviceHistory.length > 0 ? (
-            <div className="border-claims-management-table-border rounded-claims-management-table overflow-hidden border bg-white">
-              <Table>
-                <TableHeader className="bg-claims-management-table-header-bg">
-                  <TableRow className="border-claims-table-border border-b-claims-table-border hover:bg-transparent">
-                    {SERVICE_HISTORY_COLUMNS.map((column) => (
-                      <TableHead key={column} className="whitespace-nowrap">
-                        {column}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {readings.serviceHistory.map((row, rowIndex) => (
-                    <TableRow
-                      key={rowIndex}
-                      className="border-claims-management-table-border border-b-claims-management-table-border hover:bg-transparent"
-                    >
-                      {SERVICE_HISTORY_COLUMNS.map((column, columnIndex) => (
-                        <TableCell
-                          key={`${rowIndex}-${column}`}
-                          className={cn(
-                            'px-4 py-2 text-sm text-pagination-text',
-                            columnIndex === 3 && 'min-w-56 whitespace-normal',
-                            columnIndex === 6 && 'min-w-48 whitespace-normal',
-                          )}
-                        >
-                          {displayValue(row[columnIndex] ?? '')}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <p className="text-sm text-pagination-text-muted">No service visits added.</p>
-          )}
-        </ReviewSection>
-
-        <ReviewSection title="State of health and cell imbalance">
-          <ReviewList
-            rows={[
-              {
-                label: 'State of health',
-                value: readings.stateOfHealth.trim() ? `${readings.stateOfHealth.trim()}%` : '',
-              },
-              {
-                label: 'Cell imbalance',
-                value: readings.cellImbalance.trim() ? `${readings.cellImbalance.trim()}%` : '',
-              },
-            ]}
-          />
-        </ReviewSection>
-
         <ReviewSection title="Documents">
           {readings.documents.length > 0 ? (
             <ul className="flex flex-col gap-2">
               {readings.documents.map((document) => (
-                <li key={document.title} className="text-sm text-pagination-text">
-                  {document.title}
-                  <span className="text-pagination-text-muted"> · {document.fileName}</span>
+                <li key={document.title}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewFile(document.fileName)}
+                    className="text-claims-management-table-link text-left text-sm font-medium"
+                  >
+                    {document.title}
+                    <span className="text-pagination-text-muted font-normal"> · {document.fileName}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -330,6 +281,22 @@ export function CreateClaimReviewSubmitStep({
         aria-label="Policy details"
         className={CREATE_CLAIM_POLICY_SIDEBAR_CLASS}
       />
+      <Dialog open={preview != null} onOpenChange={(open) => !open && setPreviewFile(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{preview?.title}</DialogTitle>
+            <DialogDescription>{previewFile}</DialogDescription>
+          </DialogHeader>
+          {preview ? (
+            <div className="border-pagination-border mx-auto flex w-full max-w-sm flex-col gap-3 rounded-md border bg-slate-50 p-5 shadow-xs">
+              <p className="text-xs text-pagination-text-muted">{preview.page}</p>
+              <div className="rounded-md bg-violet-100 px-3 py-2 text-sm text-pagination-text ring-2 ring-violet-400">
+                <p>{preview.highlight}</p>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

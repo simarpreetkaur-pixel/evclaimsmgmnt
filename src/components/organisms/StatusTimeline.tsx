@@ -1,17 +1,21 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import InfoTooltip from '@/components/molecules/InfoTooltip';
 import { cn } from '@/lib/utils';
 import type { StatusTimelineItem } from '@/lib/types/claims-management';
 
 type StatusTimelineProps = {
-  title: string;
+  title?: string;
+  header?: ReactNode;
   items: StatusTimelineItem[];
   className?: string;
+  emptyLabel?: string;
 };
 
-export default function StatusTimeline({ title, items, className }: StatusTimelineProps) {
-  if (!items || items.length === 0) return null;
+export default function StatusTimeline({ title, header, items = [], className, emptyLabel }: StatusTimelineProps) {
+  if (items.length === 0 && !emptyLabel) return null;
 
   return (
     <div
@@ -20,8 +24,13 @@ export default function StatusTimeline({ title, items, className }: StatusTimeli
         className,
       )}
     >
-      <h3 className="text-xl font-semibold leading-7 text-status-timeline-title">{title}</h3>
+      {header ?? <h3 className="text-xl font-semibold leading-7 text-status-timeline-title">{title}</h3>}
 
+      {items.length === 0 ? (
+        <p className="text-sm text-status-timeline-item-description">{emptyLabel}</p>
+      ) : null}
+
+      {items.length > 0 ? (
       <div className="flex w-full flex-col gap-2 max-h-[55vh] overflow-y-auto">
         <div className="relative pl-4">
           {/* Vertical timeline line */}
@@ -89,6 +98,7 @@ export default function StatusTimeline({ title, items, className }: StatusTimeli
           </div>
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

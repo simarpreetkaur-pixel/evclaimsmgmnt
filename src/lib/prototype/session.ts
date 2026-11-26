@@ -45,9 +45,10 @@ const PROTOTYPE_DISPLAY_NAMES: Record<string, string> = {
   salil: 'Salil',
   mesimarpreet: 'Simarpreet',
   nikhil: 'Nikhil',
+  priya: 'Priya',
 };
 
-export type PrototypePersona = 'super' | 'owner' | 'ops';
+export type PrototypePersona = 'super' | 'owner' | 'ops' | 'kam';
 
 export const PROTOTYPE_PERSONAS: Array<{
   id: PrototypePersona;
@@ -58,6 +59,7 @@ export const PROTOTYPE_PERSONAS: Array<{
   { id: 'super', email: 'salil@gmail.com', name: 'Salil', title: 'Super profile' },
   { id: 'owner', email: 'nikhil@gmail.com', name: 'Nikhil', title: 'Dealership owner' },
   { id: 'ops', email: 'mesimarpreet@gmail.com', name: 'Simarpreet', title: 'Dealership ops' },
+  { id: 'kam', email: 'priya@gmail.com', name: 'Priya', title: 'KAM' },
 ];
 
 function prototypeLocalPart(email: string): string {
@@ -71,6 +73,9 @@ export function getPrototypePersona(email: string): PrototypePersona {
   }
   if (localPart === 'nikhil') {
     return 'owner';
+  }
+  if (localPart === 'priya') {
+    return 'kam';
   }
   return 'ops';
 }

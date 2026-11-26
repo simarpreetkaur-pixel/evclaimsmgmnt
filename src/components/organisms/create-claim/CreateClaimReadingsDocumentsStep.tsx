@@ -25,14 +25,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
 const UPLOAD_SLOTS = [
@@ -46,40 +38,12 @@ type UploadSlotId = (typeof UPLOAD_SLOTS)[number]['id'];
 
 const DMS_UPLOAD_ORDER: UploadSlotId[] = ['purchase-invoice', 'ather-claim'];
 
-const SECTION_IDS = ['documents', 'visit', 'service-history', 'battery-health'] as const;
+const SECTION_IDS = ['documents', 'visit'] as const;
 
 const FILLED_READINGS = {
-  odometerKm: '40319',
   jobCardNumber: 'RJC4B07542502466077',
   bin: 'ATH-BIN-450X-1233',
-  stateOfHealth: '95',
-  cellImbalance: '0',
 };
-
-const SERVICE_HISTORY_ROWS = [
-  ['MYHAAACA8PBB64153', 'RJC4B0G4237742', '30/06/2023 9:23 AM', '', '—', '—', '—', '5,087.48'],
-  ['MYHAAACA8PBB64153', 'RJC422567244664', '25/06/2024 11:33 AM', '20K service, belt sound, handle vibration', '—', '—', '—', '10,982.84'],
-  ['MYHAAACA8PBB64153', 'RJC422567244766', '26/06/2024 3:41 PM', 'Tyre rip', '—', '—', '—', '20,013.89'],
-  ['MYHAAACA8PBB64153', 'RJC4B0G42323042', '10/11/2023 9:21 PM', '18K service, both brake checkup, belt noise up to 30 speed', '—', '—', '—', '10,413.19'],
-  ['MYHAAACA8PBB64153', 'RJC4B0G42331077', '03/01/2024 11:22 AM', 'Rear tyre rip', '—', '—', '—', '12,395.26'],
-  ['MYHAAACA8PBB64153', 'RJC4B0G423338343', '24/02/2024 11:03 AM', '15K service, both brake checkup, belt noise heavy at 40 speed', '—', '—', '—', '14,988.19'],
-  ['MYHAAACA8PBB64153', 'RJC4225672412149', '10/10/2024 10:58 AM', '25K service, both brake pad rip, fork oil top-up', '—', '—', '—', '25,243.62'],
-  ['MYHAAACA8PBB64153', 'RJC4225672501535358', '18/01/2025 1:47 AM', '30K service, both brake pad rip, silicon spray, rear tyre rip, brake oil top-up', '1.3', '88.93', 'No further action needed', '29,814.92'],
-  ['MYHAAACA8PBB64153', 'RJC422567250370392', '09/06/2025 11:35 PM', '35K service, both brake pad rip, silicon spray, brake oil, caliper cap rip, rubbing polish, both gripper charge', '1.84', '93.64', 'No further action needed', '34,981.77'],
-  ['MYHAAACA8PBB64153', 'RJC422567230290659', '23/02/2024 10:07 PM', '45K silicon spray, brake oil, air check, software update, range issue', '11.67', '93.78', 'No further action required, proceed with the normal flow.', '45,038.82'],
-  ['MYHAAACA8PBB64153', 'RJC4B07542502466077', '14/10/2025 11:48 PM', '40K service, check battery health', '1.3', '92.57', 'No further action needed', '40,318.80'],
-];
-
-export const SERVICE_HISTORY_COLUMNS = [
-  'VIN',
-  'Job card no.',
-  'Created',
-  'Customer voice',
-  'SOC imbalance',
-  'SOH',
-  'Advice',
-  'Odometer',
-];
 
 const fieldClassName =
   'border-policy-search-border h-10 w-full bg-white px-3 text-sm shadow-policy-search transition-[background-color,box-shadow] duration-500';
@@ -93,8 +57,6 @@ export type ReadingsDraft = {
   serviceHistory: string[][];
   documents: { title: string; fileName: string }[];
 };
-
-const EMPTY_SERVICE_ROW = () => Array.from({ length: SERVICE_HISTORY_COLUMNS.length }, () => '');
 
 type CreateClaimReadingsDocumentsStepProps = {
   onBack: () => void;
@@ -163,6 +125,11 @@ const DOCUMENT_PREVIEWS: Record<UploadSlotId, { page: string; highlight: string 
     highlight: 'Ather 450X · invoice total ₹1,48,000',
   },
 };
+
+export function readingDocumentPreview(fileName: string) {
+  const slot = UPLOAD_SLOTS.find((item) => item.fileName === fileName);
+  return slot ? { title: slot.title, ...DOCUMENT_PREVIEWS[slot.id] } : null;
+}
 
 function DocumentPreview({ page, highlight }: { page: string; highlight: string }) {
   return (
@@ -304,52 +271,6 @@ function ReadingSection({
   );
 }
 
-function HealthParameter({
-  id,
-  label,
-  value,
-  sourceValue,
-  showSource = true,
-  highlighted = false,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  sourceValue: string;
-  showSource?: boolean;
-  highlighted?: boolean;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
-        <label htmlFor={id} className="text-sm font-semibold text-pagination-text">
-          {label}
-          <span className="font-normal text-pagination-text-muted"> (optional)</span>
-        </label>
-        {showSource && value.length > 0 && value === sourceValue ? (
-          <SourceIcon
-            label={label}
-            source={id === 'state-of-health' ? 'state-of-health' : 'cell-imbalance'}
-          />
-        ) : null}
-      </div>
-      <div className="flex items-center gap-2">
-        <Input
-          id={id}
-          inputMode="decimal"
-          value={value}
-          onChange={(event) => onChange(event.target.value.replace(/[^\d.]/g, ''))}
-          placeholder="—"
-          className={cn(fieldClassName, 'w-28', highlighted && 'bg-violet-50 shadow-[0_0_0_2px_rgba(139,92,246,0.45)]')}
-        />
-        <span className="text-sm text-pagination-text-muted">%</span>
-      </div>
-    </div>
-  );
-}
-
 function Field({
   id,
   label,
@@ -407,15 +328,9 @@ export function CreateClaimReadingsDocumentsStep({
   const [odometerKm, setOdometerKm] = useState('');
   const [jobCardNumber, setJobCardNumber] = useState('');
   const [bin, setBin] = useState('');
-  const [stateOfHealth, setStateOfHealth] = useState('');
-  const [cellImbalance, setCellImbalance] = useState('');
-  const [serviceRows, setServiceRows] = useState<string[][]>([EMPTY_SERVICE_ROW()]);
-  const [serviceSource, setServiceSource] = useState<string[][] | null>(null);
   const readStarted = useRef(false);
   const dmsApplied = useRef(false);
   const fillTimers = useRef<number[]>([]);
-  const serviceMatchesSource =
-    serviceSource != null && JSON.stringify(serviceRows) === JSON.stringify(serviceSource);
 
   const documentsReady = uploadSlots.every((slot) => Boolean(attached[slot.id]));
   const complete = useMemo(
@@ -432,13 +347,9 @@ export function CreateClaimReadingsDocumentsStep({
       return;
     }
     dmsApplied.current = true;
-    setOdometerKm(FILLED_READINGS.odometerKm);
     setJobCardNumber(FILLED_READINGS.jobCardNumber);
     setBin(FILLED_READINGS.bin);
-    const filledHistory = SERVICE_HISTORY_ROWS.map((row) => [...row]);
-    setServiceRows(filledHistory);
-    setServiceSource(filledHistory.map((row) => [...row]));
-    setOpenSections([...SECTION_IDS]);
+    setFetched(true);
   }, [dms]);
 
   useEffect(() => {
@@ -452,15 +363,8 @@ export function CreateClaimReadingsDocumentsStep({
   };
 
   const applyFilledReadings = () => {
-    setOdometerKm(FILLED_READINGS.odometerKm);
     setJobCardNumber(FILLED_READINGS.jobCardNumber);
     setBin(FILLED_READINGS.bin);
-    setStateOfHealth(FILLED_READINGS.stateOfHealth);
-    setCellImbalance(FILLED_READINGS.cellImbalance);
-    const filledHistory = SERVICE_HISTORY_ROWS.map((row) => [...row]);
-    setServiceRows(filledHistory);
-    setServiceSource(filledHistory.map((row) => [...row]));
-    setOpenSections([...SECTION_IDS]);
   };
 
   const startReading = () => {
@@ -481,38 +385,16 @@ export function CreateClaimReadingsDocumentsStep({
     });
     const fillStart = uploadSlots.length * 500;
     queue(fillStart, () => {
-      setReadLabel('Filling odometer, job card and BIN');
-      setOdometerKm(FILLED_READINGS.odometerKm);
-      setActiveField('odometer');
-      document.getElementById('odometer-km')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    queue(fillStart + 500, () => {
+      setReadLabel('Filling job card and battery identification number');
       setJobCardNumber(FILLED_READINGS.jobCardNumber);
       setActiveField('job-card');
+      document.getElementById('job-card-number')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
-    queue(fillStart + 1000, () => {
+    queue(fillStart + 500, () => {
       setBin(FILLED_READINGS.bin);
       setActiveField('bin');
     });
-    queue(fillStart + 1600, () => {
-      setReadLabel('Filling service history');
-      setActiveField('service');
-      const filledHistory = SERVICE_HISTORY_ROWS.map((row) => [...row]);
-      setServiceRows(filledHistory);
-      setServiceSource(filledHistory.map((row) => [...row]));
-      document.getElementById('service-history')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    queue(fillStart + 2300, () => {
-      setReadLabel('Filling battery health');
-      setStateOfHealth(FILLED_READINGS.stateOfHealth);
-      setActiveField('soh');
-      document.getElementById('battery-health')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    queue(fillStart + 2800, () => {
-      setCellImbalance(FILLED_READINGS.cellImbalance);
-      setActiveField('cell');
-    });
-    queue(fillStart + 3400, () => {
+    queue(fillStart + 1100, () => {
       setReading(false);
       setReadLabel('');
       setActiveField(null);
@@ -548,9 +430,9 @@ export function CreateClaimReadingsDocumentsStep({
             odometerKm,
             jobCardNumber,
             bin,
-            stateOfHealth,
-            cellImbalance,
-            serviceHistory: serviceRows.filter((row) => row.some((cell) => cell.trim().length > 0)),
+            stateOfHealth: '',
+            cellImbalance: '',
+            serviceHistory: [],
             documents: uploadSlots.flatMap((slot) =>
               attached[slot.id] ? [{ title: slot.title, fileName: attached[slot.id] as string }] : [],
             ),
@@ -562,8 +444,8 @@ export function CreateClaimReadingsDocumentsStep({
           <h2 className="text-lg font-semibold text-pagination-text">Readings and documents</h2>
           <p className="text-sm leading-5 text-pagination-text-muted">
             {dms
-              ? 'Odometer, job card, BIN, and service history are filled from the dealership DMS. Upload the purchase invoice and the Ather claim document.'
-              : 'Add the documents for this visit. The sections below fill in from them.'}
+              ? 'Job card and battery identification number are filled from the documents. Enter the odometer yourself.'
+              : 'Upload the documents. Job card and battery identification number fill in from them. Enter the odometer yourself.'}
           </p>
         </div>
 
@@ -622,7 +504,7 @@ export function CreateClaimReadingsDocumentsStep({
                 </div>
                 {dms ? null : (
                   <p className="text-sm text-pagination-text-muted">
-                    One click attaches every document. They are read first, then the fields fill in.
+                    One click attaches every document. Job card and battery identification number fill in from them.
                   </p>
                 )}
                 {reading ? (
@@ -635,21 +517,15 @@ export function CreateClaimReadingsDocumentsStep({
             </ReadingSection>
             <ReadingSection id="visit" title="Odometer, job card and BIN">
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field
-                  id="odometer-km"
-                  label="Odometer, km"
-                  supplied={dms && odometerKm === FILLED_READINGS.odometerKm}
-                  source="odometer"
-                  showSource={!dms && fetched && odometerKm === FILLED_READINGS.odometerKm}
-                >
+                <Field id="odometer-km" label="Odometer, km">
                   <Input
                     id="odometer-km"
                     required
                     inputMode="numeric"
                     value={odometerKm}
                     onChange={(event) => setOdometerKm(event.target.value.replace(/\D/g, ''))}
-                    placeholder={dms ? 'Enter the reading' : 'Filled from your documents'}
-                    className={filledClass('odometer')}
+                    placeholder="Enter the reading"
+                    className={fieldClassName}
                   />
                 </Field>
                 <Field
@@ -685,108 +561,6 @@ export function CreateClaimReadingsDocumentsStep({
                     className={cn(filledClass('bin'), dms && 'bg-slate-50')}
                   />
                 </Field>
-              </div>
-            </ReadingSection>
-
-            <ReadingSection
-              id="service-history"
-              title="Service history"
-              filled={!dms && serviceMatchesSource}
-              source="service-history"
-              badge={dms && serviceMatchesSource ? 'From DMS' : undefined}
-            >
-              <div className="flex flex-col gap-3">
-                <div
-                  className={cn(
-                    'border-claims-management-table-border rounded-claims-management-table overflow-hidden border bg-white transition-shadow duration-500',
-                    activeField === 'service' && 'shadow-[0_0_0_2px_rgba(139,92,246,0.45)]',
-                  )}
-                >
-                  <Table>
-                    <TableHeader className="bg-claims-management-table-header-bg">
-                      <TableRow className="border-claims-table-border border-b-claims-table-border hover:bg-transparent">
-                        {SERVICE_HISTORY_COLUMNS.map((column) => (
-                          <TableHead key={column} className="whitespace-nowrap">
-                            {column}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {serviceRows.map((row, rowIndex) => (
-                        <TableRow
-                          key={rowIndex}
-                          className="border-claims-management-table-border border-b-claims-management-table-border hover:bg-transparent"
-                        >
-                          {row.map((cell, columnIndex) => (
-                            <TableCell
-                              key={`${rowIndex}-${columnIndex}`}
-                              className={cn(
-                                'px-2 py-1',
-                                columnIndex === 3 && 'min-w-56',
-                                columnIndex === 6 && 'min-w-48',
-                              )}
-                            >
-                              <Input
-                                aria-label={`${SERVICE_HISTORY_COLUMNS[columnIndex]} row ${rowIndex + 1}`}
-                                value={cell}
-                                onChange={(event) => {
-                                  const nextValue = event.target.value;
-                                  setServiceRows((current) =>
-                                    current.map((currentRow, currentIndex) =>
-                                      currentIndex === rowIndex
-                                        ? currentRow.map((currentCell, cellIndex) =>
-                                            cellIndex === columnIndex ? nextValue : currentCell,
-                                          )
-                                        : currentRow,
-                                    ),
-                                  );
-                                }}
-                                className="border-policy-search-border h-8 min-w-28 bg-white px-2 text-sm shadow-none"
-                              />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setServiceRows((current) => [...current, EMPTY_SERVICE_ROW()])}
-                  className="border-policy-search-border h-9 w-fit bg-white px-4 text-sm font-medium shadow-policy-search"
-                >
-                  Add a visit
-                </Button>
-              </div>
-            </ReadingSection>
-
-            <ReadingSection
-              id="battery-health"
-              title="State of health and cell imbalance"
-              filled={fetched}
-            >
-              <div className="flex flex-col gap-5">
-                <HealthParameter
-                  id="state-of-health"
-                  label="State of health"
-                  value={stateOfHealth}
-                  sourceValue={FILLED_READINGS.stateOfHealth}
-                  showSource={!dms}
-                  highlighted={activeField === 'soh'}
-                  onChange={setStateOfHealth}
-                />
-                <div className="border-claims-table-border border-t" />
-                <HealthParameter
-                  id="cell-imbalance"
-                  label="Cell imbalance"
-                  value={cellImbalance}
-                  sourceValue={FILLED_READINGS.cellImbalance}
-                  showSource={!dms}
-                  highlighted={activeField === 'cell'}
-                  onChange={setCellImbalance}
-                />
               </div>
             </ReadingSection>
           </Accordion>

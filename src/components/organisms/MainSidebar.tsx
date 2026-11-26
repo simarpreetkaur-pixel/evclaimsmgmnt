@@ -3,13 +3,19 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
-import { ClipboardList, LayoutDashboard, WalletCards } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, Settings, WalletCards } from 'lucide-react';
 
 import { AppImage } from '@/components/atoms/AppImage';
 import { PermissionGate } from '@/components/atoms/PermissionGate';
 import { SidebarUserMenu } from '@/components/molecules/SidebarUserMenu';
 import { PERMISSIONS } from '@/lib/constants/auth.constants';
-import { getPrototypeEmail, getPrototypeFirstName, getPrototypePersona, PROTOTYPE_MODE } from '@/lib/prototype/session';
+import {
+  getPrototypeEmail,
+  getPrototypeFirstName,
+  getPrototypePersona,
+  PROTOTYPE_MODE,
+  type PrototypePersona,
+} from '@/lib/prototype/session';
 import { useUserProfileStore } from '@/lib/store/userProfile.store';
 import type { PermissionRequirement } from '@/lib/utils/permissionUtils';
 import { cn } from '@/lib/utils';
@@ -34,8 +40,8 @@ const navItems: NavItem[] = [
     permission: PERMISSIONS.VIEW_DASHBOARD,
   },
   {
-    label: 'Create claim',
-    href: '/create-claim',
+    label: 'Claims management',
+    href: '/claims-management',
     icon: ClipboardList,
     permission: PERMISSIONS.VIEW_CLAIMS,
   },
@@ -44,6 +50,11 @@ const navItems: NavItem[] = [
     href: '/financials',
     icon: WalletCards,
     permission: PERMISSIONS.VIEW_FINANCIALS,
+  },
+  {
+    label: 'Settings',
+    href: '/settings',
+    icon: Settings,
   },
 ];
 
@@ -56,7 +67,7 @@ export function Sidebar() {
   const currentSource = useDataSource();
   const withCurrentSource = (href: string) => appendSourceQueryParam(href, '', currentSource);
   const overviewHref = withCurrentSource(`${dashboardBasePath}/overview`);
-  const [persona, setPersona] = useState<'super' | 'owner' | 'ops' | null>(null);
+  const [persona, setPersona] = useState<PrototypePersona | null>(null);
   useEffect(() => {
     if (!PROTOTYPE_MODE) {
       return;
@@ -68,16 +79,28 @@ export function Sidebar() {
     if (!PROTOTYPE_MODE || !persona) {
       return true;
     }
-    if (persona === 'owner' && item.href === '/create-claim') {
+    if (persona === 'owner' && item.href === '/settings') {
       return false;
     }
-    if (persona === 'ops' && item.href === '/financials') {
+    if (persona === 'ops' && (item.href === '/financials' || item.href === '/settings')) {
+      return false;
+    }
+    if (persona === 'kam' && item.href !== '/overview' && item.href !== '/settings' && item.href !== '/claims-management') {
+      return false;
+    }
+    if (persona !== 'kam' && persona !== 'super' && item.href === '/settings') {
       return false;
     }
     return true;
   });
   const personaLabel =
-    persona === 'super' ? 'Super profile' : persona === 'owner' ? 'Dealership owner' : 'Dealership ops';
+    persona === 'super'
+      ? 'Super profile'
+      : persona === 'owner'
+        ? 'Dealership owner'
+        : persona === 'kam'
+          ? 'KAM'
+          : 'Dealership ops';
   const userName = PROTOTYPE_MODE
     ? userProfile?.email
       ? getPrototypeFirstName(userProfile.email)
@@ -118,7 +141,8 @@ export function Sidebar() {
           const isActive =
             pathname === resolvedHref ||
             (resolvedHref !== '/' && pathname.startsWith(`${resolvedHref}/`)) ||
-            (item.href === '/overview' && pathname.includes('/claim-details'));
+            (item.href === '/overview' && pathname.includes('/claim-details')) ||
+            (item.href === '/claims-management' && pathname.includes('/create-claim'));
 
           return (
             <PermissionGate key={item.href} permission={item.permission}>

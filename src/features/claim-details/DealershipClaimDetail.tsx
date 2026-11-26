@@ -49,6 +49,7 @@ const TABS = [
   { value: 'claim-overview', label: 'Claim overview' },
   { value: 'claimant-information', label: 'Claimant information' },
   { value: 'documents', label: 'Documents' },
+  { value: 'communication-log', label: 'Communication log' },
 ];
 
 type DocumentSeed = {
@@ -706,7 +707,7 @@ function handlerNoteItem(story: ClaimStory): StatusTimelineItem | null {
   if (!story.handlerNote) return null;
   return {
     id: 'handler-note',
-    description: 'Claim handler note',
+    description: 'Note from ACKO',
     title: story.handlerNote.body,
     performer: 'ACKO',
     timestampLabel: '',
@@ -718,103 +719,95 @@ function handlerNoteItem(story: ClaimStory): StatusTimelineItem | null {
 function messageItems(messages: ClaimMessage[]): StatusTimelineItem[] {
   return messages.map((message, index) => ({
     id: message.id,
-    description: message.from === 'acko' ? 'Reply from ACKO' : `Note from ${message.author}`,
+    description: message.from === 'acko' ? 'Reply from ACKO' : 'Note to ACKO',
     title: message.body,
-    performer: '',
+    performer: message.from === 'acko' ? 'ACKO' : message.author,
     timestampLabel: '',
     timestamp: message.at,
     isActive: index === 0,
   }));
 }
 
-function timelineFor(claim: OngoingClaim, story: ClaimStory): StatusTimelineItem[] {
-  const raised = {
-    id: 'raised',
-    description: 'Claim raised',
-    title: 'The dealership sent this battery claim to Acko.',
-    performer: '',
-    timestampLabel: '',
-    timestamp: claim.raisedOn,
-    isActive: false,
-  };
-  const review = {
-    id: 'review',
-    description: 'In review',
-    title: 'Acko is checking the readings and the documents.',
-    performer: '',
-    timestampLabel: '',
-    timestamp: claim.raisedOn,
-    isActive: claim.status === 'In review with ACKO' || claim.status === 'With ACKO' || claim.status === 'Query raised',
-  };
-  const latest =
-    claim.status === 'Paid'
-      ? {
-          id: 'paid',
-          description: 'Paid',
-          title: 'Acko paid the replacement invoice.',
-          performer: '',
-          timestampLabel: '',
-          timestamp: claim.raisedOn,
-          isActive: true,
-        }
-      : claim.status === 'Rejected'
-        ? {
-            id: 'rejected',
-            description: 'Rejected',
-            title: story.observation,
-            performer: '',
-            timestampLabel: '',
-            timestamp: claim.raisedOn,
-            isActive: true,
-          }
-        : claim.status === 'Payment pending' ||
-            claim.status === 'Payment on the way' ||
-            claim.status === 'Payment overdue' ||
-            claim.status === 'Waiting for payment' ||
-            claim.status === 'Invoice approved'
-          ? {
-              id: 'payment-pending',
-              description: claim.status === 'Payment pending' ? 'Payment pending' : claim.status,
-              title: story.observation,
-              performer: '',
-              timestampLabel: '',
-              timestamp: claim.raisedOn,
-              isActive: true,
-            }
-          : claim.status === 'Not approved' || claim.status === 'Partly approved' || claim.status === 'Not covered'
-            ? {
-                id: 'decision',
-                description: claim.status,
-                title: story.observation,
-                performer: '',
-                timestampLabel: '',
-                timestamp: claim.raisedOn,
-                isActive: true,
-              }
-        : claim.status === 'Closed' || claim.status === 'Closed · reopenable'
-          ? {
-              id: 'closed',
-              description: 'Closed',
-              title: 'Closed for now. The dealership can raise it again with a clearer inspection.',
-              performer: '',
-              timestampLabel: '',
-              timestamp: claim.raisedOn,
-              isActive: true,
-            }
-          : story.request
-            ? {
-                id: 'needs-you',
-                description: claim.status,
-                title: story.request.description,
-                performer: '',
-                timestampLabel: '',
-                timestamp: claim.raisedOn,
-                isActive: true,
-              }
-            : review;
+function statusTooltip(status: string): string {
+  if (status === 'In review with ACKO' || status === 'With ACKO') {
+    return 'ACKO is checking this claim.';
+  }
+  if (status === 'ACKO needs documents' || status === 'Documents requested') {
+    return 'ACKO is waiting for documents.';
+  }
+  if (status === 'Approved · invoice due' || status === 'Upload invoice' || status === 'Invoice due') {
+    return 'Approved. The repair invoice is still due.';
+  }
+  if (status === 'Invoice approved') return 'ACKO approved the invoice.';
+  if (status === 'Waiting for payment' || status === 'Payment pending') {
+    return 'Payment has not gone out yet.';
+  }
+  if (status === 'Payment on the way') return 'Payment is being processed.';
+  if (status === 'Payment overdue') return 'Payment is past the expected date.';
+  if (status === 'Paid') return 'ACKO has paid this claim.';
+  if (status === 'Rejected' || status === 'Not approved') return 'ACKO did not approve this claim.';
+  if (status === 'Partly approved') return 'ACKO approved only part of this claim.';
+  if (status === 'Not covered') return 'This failure is outside the cover.';
+  if (status === 'Query raised') return 'ACKO has a question on this claim.';
+  if (status === 'Closed') return 'This claim is closed.';
+  if (status === 'Closed · reopenable') return 'Closed for now. It can be raised again.';
+  return 'ACKO is checking this claim.';
+}
 
-  if (latest.id === 'review') return [review, raised];
-  return [latest, review, raised];
+function statusUpdateCopy(status: string): string {
+  if (status === 'Paid') return 'Acko paid the replacement invoice.';
+  if (status === 'Rejected') return 'Acko rejected this claim.';
+  if (status === 'Closed' || status === 'Closed · reopenable') {
+    return 'Closed for now. The dealership can raise it again with a clearer inspection.';
+  }
+  if (status === 'ACKO needs documents' || status === 'Documents requested') {
+    return 'Acko asked the dealership for documents.';
+  }
+  if (
+    status === 'Payment pending' ||
+    status === 'Payment on the way' ||
+    status === 'Payment overdue' ||
+    status === 'Waiting for payment' ||
+    status === 'Invoice approved' ||
+    status === 'Upload invoice' ||
+    status === 'Approved · invoice due' ||
+    status === 'Invoice due'
+  ) {
+    return 'The claim moved on to payment.';
+  }
+  if (status === 'Not approved' || status === 'Partly approved' || status === 'Not covered') {
+    return 'Acko recorded a decision on this claim.';
+  }
+  if (status === 'Query raised') return 'A query is open on this claim.';
+  return 'Acko is checking the readings and the documents.';
+}
+
+function timelineFor(claim: OngoingClaim): StatusTimelineItem[] {
+  const current: StatusTimelineItem = {
+    id: 'current-status',
+    description: claim.status,
+    title: statusUpdateCopy(claim.status),
+    stageDescription: statusTooltip(claim.status),
+    performer: '',
+    timestampLabel: '',
+    timestamp: claim.raisedOn,
+    isActive: true,
+  };
+  const alreadyInReview = claim.status === 'In review with ACKO' || claim.status === 'With ACKO';
+  if (alreadyInReview) return [current];
+  return [
+    current,
+    {
+      id: 'review',
+      description: 'In review with ACKO',
+      title: 'Acko is checking the readings and the documents.',
+      stageDescription: statusTooltip('In review with ACKO'),
+      performer: '',
+      timestampLabel: '',
+      timestamp: claim.raisedOn,
+      isActive: false,
+    },
+  ];
 }
 
 function toDocumentRow(seed: DocumentSeed, uploadedBy: string): ClaimDocumentRow {
@@ -953,14 +946,10 @@ export default function DealershipClaimDetail() {
   const thread = threads[claim.id] ?? [];
   const waitingOnAcko = thread[0]?.from === 'dealership';
   const handlerNote = handlerNoteItem(story);
-  const history = [
-    ...messageItems(thread),
-    ...(handlerNote ? [{ ...handlerNote, isActive: thread.length === 0 }] : []),
-    ...timelineFor(claim, story).map((item) => ({
-      ...item,
-      isActive: thread.length > 0 || handlerNote ? false : item.isActive,
-    })),
-  ];
+  const statusItems = timelineFor(claim);
+  const communicationItems = [...messageItems(thread), ...(handlerNote ? [handlerNote] : [])].map(
+    (item, index) => ({ ...item, isActive: index === 0 }),
+  );
 
   const openMessage = () => {
     if (waitingOnAcko) {
@@ -988,6 +977,7 @@ export default function DealershipClaimDetail() {
     }));
     setNote('');
     setComposeOpen(false);
+    setTab('communication-log');
     if (replyTimer.current) window.clearTimeout(replyTimer.current);
     replyTimer.current = window.setTimeout(() => {
       setThreads((current) => {
@@ -1052,8 +1042,6 @@ export default function DealershipClaimDetail() {
                   { label: 'What the customer reported', value: story.observation },
                   { label: 'When it failed', value: story.failedOn },
                   { label: 'Closest failure match', value: story.closestMatch },
-                  { label: 'State of health', value: story.stateOfHealth },
-                  { label: 'Cell imbalance', value: story.cellImbalance },
                 ])}
               />
             </>
@@ -1070,6 +1058,21 @@ export default function DealershipClaimDetail() {
                 { label: 'Policy', value: story.policy },
                 { label: 'Plan', value: 'Battery extended warranty' },
               ])}
+            />
+          ) : null}
+
+          {tab === 'communication-log' ? (
+            <StatusTimeline
+              header={
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-xl font-semibold leading-7 text-pagination-text">Communication log</h2>
+                  <p className="text-sm font-normal text-pagination-text-muted">
+                    Notes written to ACKO, and the replies that come back.
+                  </p>
+                </div>
+              }
+              items={communicationItems}
+              emptyLabel="No notes yet. Use Raise to ACKO to write the first one."
             />
           ) : null}
 
@@ -1094,7 +1097,7 @@ export default function DealershipClaimDetail() {
 
         </div>
 
-        <StatusTimeline title="Communication history" items={history} />
+        <StatusTimeline title="Status timeline" items={statusItems} emptyLabel="No status updates yet." />
       </div>
 
       <Dialog open={justSentOpen} onOpenChange={setJustSentOpen}>
@@ -1135,7 +1138,7 @@ export default function DealershipClaimDetail() {
           <DialogHeader>
             <DialogTitle>Raise to ACKO</DialogTitle>
             <DialogDescription>
-              Add a note for {claim.id}. It shows in the communication history, and ACKO’s reply shows there too.
+              Add a note for {claim.id}. It shows in the communication log, and ACKO’s reply shows there too.
             </DialogDescription>
           </DialogHeader>
           <label className="flex flex-col gap-2 text-sm font-medium text-pagination-text">

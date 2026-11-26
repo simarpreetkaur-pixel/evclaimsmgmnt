@@ -17,7 +17,7 @@ const getBreadcrumbs = (pathname: string): Breadcrumb[] => {
   const baseSegments = paths.slice(0, 2);
   const breadcrumbSegments = paths.slice(2);
 
-  return breadcrumbSegments.map((segment, index) => {
+  const items = breadcrumbSegments.map((segment, index) => {
     const fullPath = [...baseSegments, ...breadcrumbSegments.slice(0, index + 1)];
 
     const isCurrent = index === breadcrumbSegments.length - 1;
@@ -31,6 +31,20 @@ const getBreadcrumbs = (pathname: string): Breadcrumb[] => {
       isCurrent,
     };
   });
+
+  const onlySegment = breadcrumbSegments.length === 1 ? breadcrumbSegments[0] : null;
+  if (onlySegment === 'create-claim' || onlySegment === 'claim-details') {
+    return [
+      {
+        label: 'Claims Management',
+        href: `/${[...baseSegments, 'claims-management'].join('/')}`,
+        isCurrent: false,
+      },
+      ...items,
+    ];
+  }
+
+  return items;
 };
 
 export default function Breadcrumbs() {
@@ -41,7 +55,7 @@ export default function Breadcrumbs() {
   return (
     <nav
       aria-label="Breadcrumb"
-      className={cn('flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground')}
+      className={cn('flex flex-wrap items-center gap-3 text-sm text-muted-foreground')}
     >
       <Button
         type="button"
@@ -49,22 +63,22 @@ export default function Breadcrumbs() {
         size="icon-sm"
         onClick={() => router.back()}
         aria-label="Go back"
-        className="size-8 rounded-sm border-input bg-white shadow-xs"
+        className="size-8 rounded-md border-input bg-white text-muted-foreground shadow-xs"
       >
         <ArrowLeftIcon className="size-4" />
       </Button>
 
       {breadcrumbs.map((item, index) => {
         const content = !item.isCurrent ? (
-          <Link href={item.href} className={'hover:text-foreground transition-colors'}>
+          <Link href={item.href} className="text-muted-foreground transition-colors hover:text-foreground">
             {item.label}
           </Link>
         ) : (
-          <span className={cn(item.isCurrent && 'text-foreground')}>{item.label}</span>
+          <span className="font-semibold text-foreground">{item.label}</span>
         );
 
         return (
-          <div key={`${item.label}-${index}`} className="flex items-center gap-2">
+          <div key={`${item.label}-${index}`} className="flex items-center gap-3">
             {content}
             {!item.isCurrent && <ChevronRightIcon className="size-4 text-muted-foreground" />}
           </div>

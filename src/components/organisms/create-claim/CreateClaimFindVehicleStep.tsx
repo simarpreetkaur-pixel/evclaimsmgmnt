@@ -192,7 +192,7 @@ export function CreateClaimFindVehicleStep({
                   <div className="text-sm">
                     <p className="font-medium text-pagination-text">DMS connected</p>
                     <p className="text-pagination-text-muted">
-                      We’ll pre-fill vehicle readings and service records from your DMS. You can review and edit them in the next steps.
+                      Job card and battery identification number are filled from the documents. Enter the odometer yourself.
                     </p>
                   </div>
                 </div>

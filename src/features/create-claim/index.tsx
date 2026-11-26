@@ -20,7 +20,7 @@ import { OTHERS_RECIPIENT_ID } from '@/lib/adapter/policy-share/policyShare.adap
 import { SHARE_POLICY_INFO_TEXT } from '@/lib/constants/policy.constants';
 import { SHARE_POLICY_CONFIG } from '@/lib/constants/policyShare.constants';
 import { useCreateClaimFlow } from '@/lib/hooks/useCreateClaimFlow';
-import { getPrototypeEmail, isPrototypeOwner, PROTOTYPE_MODE } from '@/lib/prototype/session';
+import { getPrototypeEmail, getPrototypePersona, PROTOTYPE_MODE, type PrototypePersona } from '@/lib/prototype/session';
 import { useUserProfileStore } from '@/lib/store/userProfile.store';
 import { usePolicyShareDialog } from '@/lib/hooks/usePolicyShareDialog';
 import { useCoveragePlanMappingQuery } from '@/lib/query/overview.queries';
@@ -33,16 +33,17 @@ export default function CreateClaimFlow() {
   const router = useRouter();
   const { partner } = useParams<{ partner: string }>();
   const { userProfile } = useUserProfileStore();
-  const [owner, setOwner] = useState(false);
+  const [persona, setPersona] = useState<PrototypePersona | null>(null);
 
   useEffect(() => {
-    const email = userProfile?.email || getPrototypeEmail();
-    if (!PROTOTYPE_MODE || !isPrototypeOwner(email)) {
-      setOwner(false);
+    if (!PROTOTYPE_MODE) {
       return;
     }
-    setOwner(true);
-    router.replace(`/${partner}/dashboard/overview`);
+    const next = getPrototypePersona(userProfile?.email || getPrototypeEmail());
+    setPersona(next);
+    if (next === 'owner' || next === 'kam') {
+      router.replace(`/${partner}/dashboard/overview`);
+    }
   }, [partner, router, userProfile?.email]);
   const [cancelledPolicyDialogOpen, setCancelledPolicyDialogOpen] = useState(false);
   const [claimNotSupportedDialogOpen, setClaimNotSupportedDialogOpen] = useState(false);
@@ -115,13 +116,13 @@ export default function CreateClaimFlow() {
     flow.handleContinueToClaimType();
   };
 
-  if (owner) {
-    return null;
-  }
-
   if (PROTOTYPE_MODE) {
+    if (!persona || persona === 'owner' || persona === 'kam') {
+      return null;
+    }
     return (
       <div className={`${PAGE_LAYOUT_CLASS} absolute inset-0 min-h-0 overflow-hidden`}>
+        <Breadcrumbs />
         <CreateClaimPrototypeFlow />
       </div>
     );
